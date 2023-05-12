@@ -7,17 +7,11 @@ from base64 import b64encode
 import json
 
 ACCESS_TOKEN = None
-REFRESH_TOKEN = None
+REFRESH_TOKEN = dotenv_values(".env")["refresh_token"]
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    global ACCESS_TOKEN
-    global REFRESH_TOKEN
-
-    tokens = await create_initial_token()
-
-    ACCESS_TOKEN = tokens["access_token"]
-    REFRESH_TOKEN = tokens["refresh_token"]
+    await refresh_token()
 
     yield
 
@@ -74,22 +68,3 @@ async def refresh_token():
         ACCESS_TOKEN = data.json()["access_token"]
 
     return None
-
-async def create_initial_token():
-    callback_uri = "https://accounts.spotify.com/api/token"
-    grant_type = "authorization_code"
-    client_id = dotenv_values(".env")["client_id"]
-    initial_code = dotenv_values(".env")["initial_code"]
-    redirect_uri = dotenv_values(".env")["redirect_uri"]
-    client_secret = dotenv_values(".env")["client_secret"]
-    code_verifier = "code"
-    
-    url = f"{callback_uri}?client_id={client_id}&grant_type={grant_type}&code={initial_code}&redirect_uri={redirect_uri}&code_verifier={code_verifier}&client_secret={client_secret}"
-    request_headers = { "Content-Type": "application/x-www-form-urlencoded" }
-    
-    tokens = post(url, headers=request_headers)
-
-    if (tokens.status_code == 200):
-        return tokens.json()
-    else:
-        raise Exception(f"Initial token was not accepted: {tokens.status_code}")
