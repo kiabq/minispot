@@ -46,8 +46,12 @@ async def read_root():
         return {
             "data": data.json()
         }
-    else:
+    elif (data.status_code != 200):
         await refresh_token()
+    else:
+        return {
+            "message": "Error!"
+        }
 
 async def refresh_token():
     grant_type = "refresh_token"
