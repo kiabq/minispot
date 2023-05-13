@@ -18,8 +18,8 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 
 origins = [
-    "http://localhost",
-    "http://localhost:3000"
+    dotenv_values(".env")["apex_domain"],
+    dotenv_values(".env")["sub_domain"]
 ]
 
 app.add_middleware(
